@@ -119,6 +119,26 @@ def generate_images(
 
 
 #----------------------------------------------------------------------------
+def generate_images_from_z(network_pkl, z, labels):
+    print('Loading networks from "%s"...' % network_pkl)
+    device = torch.device('cuda')
+    with dnnlib.util.open_url(network_pkl) as f:
+        G = legacy.load_network_pkl(f)['G_ema']
+        G = G.eval().requires_grad_(False).to(device)
+
+    # Generate images.
+    # Construct an inverse rotation/translation matrix and pass to the generator.  The
+    # generator expects this matrix as an inverse to avoid potentially failing numerical
+    # operations in the network.
+    if hasattr(G.synthesis, 'input'):
+        m = make_transform('0,0', 0)
+        m = np.linalg.inv(m)
+        G.synthesis.input.transform.copy_(torch.from_numpy(m))
+
+    
+    img = gen_utils.z_to_img(G, z, 1.0)
+    PIL.Image.fromarray(gen_utils.create_image_grid(img), 'RGB').save(f'{outdir}/seed{seed:04d}.png')
+#----------------------------------------------------------------------------
 
 if __name__ == "__main__":
     generate_images() # pylint: disable=no-value-for-parameter

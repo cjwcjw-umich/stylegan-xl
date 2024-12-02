@@ -58,11 +58,11 @@ except AttributeError:
 #----------------------------------------------------------------------------
 # Symbolic assert.
 
-try:
+'''try:
     symbolic_assert = torch._assert # 1.8.0a0 # pylint: disable=protected-access
 except AttributeError:
     symbolic_assert = torch.Assert # 1.7.0
-
+'''
 #----------------------------------------------------------------------------
 # Context manager to temporarily suppress known warnings in torch.jit.trace().
 # Note: Cannot use catch_warnings because of https://bugs.python.org/issue29672
@@ -87,10 +87,12 @@ def assert_shape(tensor, ref_shape):
             pass
         elif isinstance(ref_size, torch.Tensor):
             with suppress_tracer_warnings(): # as_tensor results are registered as constants
-                symbolic_assert(torch.equal(torch.as_tensor(size), ref_size), f'Wrong size for dimension {idx}')
+                assert torch.equal(torch.as_tensor(size), ref_size), f'Wrong size for dimension {idx}'
+                #symbolic_assert(torch.equal(torch.as_tensor(size), ref_size), f'Wrong size for dimension {idx}')
         elif isinstance(size, torch.Tensor):
             with suppress_tracer_warnings(): # as_tensor results are registered as constants
-                symbolic_assert(torch.equal(size, torch.as_tensor(ref_size)), f'Wrong size for dimension {idx}: expected {ref_size}')
+                assert torch.equal(size, torch.as_tensor(ref_size)), f'Wrong size for dimension {idx}: expected {ref_size}'
+                #symbolic_assert(torch.equal(size, torch.as_tensor(ref_size)), f'Wrong size for dimension {idx}: expected {ref_size}')
         elif size != ref_size:
             raise AssertionError(f'Wrong size for dimension {idx}: got {size}, expected {ref_size}')
 
